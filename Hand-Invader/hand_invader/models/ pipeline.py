@@ -1,10 +1,6 @@
 import numpy as np
 
 import torch
-import torch.optim as optim
-import torch.nn as nn
-import torch.functional as F
-from torch.utils.data import DataLoader, TensorDataset, random_split
 
 class Pipeline:
     def __init__(self, model, loss_fn, optimizer):
