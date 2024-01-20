@@ -1,1 +1,1 @@
-from pipeline import Pipeline
+from app.models.pipeline import Pipeline

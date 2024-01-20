@@ -1,4 +1,7 @@
 import torch
+from torchvision import tv_tensors
+from torchvision.transforms.v2 import functional as F
+
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -11,7 +14,7 @@ class ImageDataset(Dataset):
         self.image_paths = []
         for idx, image in enumerate(coco_json['images']):
             assert idx == image['id']
-            self.image_paths.append(image['files_name'])
+            self.image_paths.append(image_dir+"/"+image['file_name'])
 
     def __len__(self):
         return len(self.image_paths)
@@ -22,15 +25,29 @@ class ImageDataset(Dataset):
         # Read image and label
         image = Image.open(image_path)
         
-        labels = []
+        target = {}
+        boxes =[]
+        areas =[]
+        labels=[]
+        iscrowd=[]
         for  annotated_imaged in self.coco_json['annotations']:
             if annotated_imaged['id'] == idx:
-                labels.append(annotated_imaged['bbox'])
+                # convert XYWH to XYXY
+                bbox_XYXY = annotated_imaged['bbox']
+                bbox_XYXY = [bbox_XYXY[0], bbox_XYXY[1], bbox_XYXY[0]+bbox_XYXY[2], 
+                             bbox_XYXY[1]+bbox_XYXY[3]]
+                boxes.append(bbox_XYXY)
+                areas.append(annotated_imaged['area'])
+                labels.append(annotated_imaged['category_id'])
+                iscrowd.append(annotated_imaged['iscrowd'])
 
-        labels_tensor = torch.tensor(labels)
+        target["boxes"] = tv_tensors.BoundingBoxes(boxes, format="XYWH", canvas_size=F.get_size(image))
+        target["labels"] = torch.tensor(labels)
+        target["area"] = torch.tensor(areas)
+        target["iscrowd"] = torch.tensor(iscrowd)
 
         # Apply transformations (if any)
         if self.transform:
             image = self.transform(image)
 
-        return image, labels_tensor
+        return image, target
