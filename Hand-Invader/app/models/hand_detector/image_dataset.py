@@ -17,8 +17,11 @@ class ImageDataset(Dataset):
 
         # Read image and label
         image = Image.open(image_path)
-        label = torch.tensor(int(open(label_path, "r").readline()))  # Assuming labels are single integers
-
+        with open(label_path, "r") as f:
+            lines = f.readlines()
+            label = [[ num for num in line ] for line in lines]
+            label = torch.tensor(label)
+            
         # Apply transformations (if any)
         if self.transform:
             image = self.transform(image)
