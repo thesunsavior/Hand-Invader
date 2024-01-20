@@ -21,13 +21,16 @@ class ImageDataset(Dataset):
 
         # Read image and label
         image = Image.open(image_path)
-        annotation = self.coco_json['annotations'][idx]
         
-        assert annotation['id'] == idx
-        label = annotation['bbox']
+        labels = []
+        for  annotated_imaged in self.coco_json['annotations']:
+            if annotated_imaged['id'] == idx:
+                labels.append(annotated_imaged['bbox'])
+
+        labels_tensor = torch.tensor(labels)
 
         # Apply transformations (if any)
         if self.transform:
             image = self.transform(image)
 
-        return image, label
+        return image, labels_tensor
