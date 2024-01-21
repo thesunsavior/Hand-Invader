@@ -41,7 +41,7 @@ class ImageDataset(Dataset):
                 labels.append(annotated_imaged['category_id'])
                 iscrowd.append(annotated_imaged['iscrowd'])
 
-        target["boxes"] = tv_tensors.BoundingBoxes(boxes, format="XYWH", canvas_size=F.get_size(image))
+        target["boxes"] = tv_tensors.BoundingBoxes(boxes, format="XYXY", canvas_size=F.get_size(image))
         target["labels"] = torch.tensor(labels)
         target["area"] = torch.tensor(areas)
         target["iscrowd"] = torch.tensor(iscrowd)

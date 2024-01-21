@@ -163,15 +163,18 @@ def save_checkpoint(model, optimizer, filename):
     }
     torch.save(checkpoint, filename)
 
-def load_checkpoint(self, model, optimizer, filename):
+def load_checkpoint(model, optimizer, filename):
     # Loads dictionary
     checkpoint = torch.load(filename)
+
+    # checking weight
+    print(checkpoint['model_state_dict'])
     
     # Restore state for model and optimizer
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(
         checkpoint['optimizer_state_dict']
     )
-    self.model.train() 
+    model.train() 
 
     return model, optimizer

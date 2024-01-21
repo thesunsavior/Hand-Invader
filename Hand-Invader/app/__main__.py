@@ -1,5 +1,5 @@
 import app.models
-from app.models.hand_detector import hand_detection_model, images_dataloader
+from app.models.hand_detector import hand_detection_model, transform, images_dataloader
 from app.models.pipeline import train_one_epoch, save_checkpoint
 from app.models.hand_detector.util import inference, plot_image
 
@@ -43,10 +43,13 @@ if __name__ == "__main__":
     save_checkpoint(hand_detection_model, optimizer, 'hand_detection.ckpt')
 
     # prediction
-    image_path = 'Hand-Invader/input.png'
+    image_path = '/Users/trungpham/Public/Hand-Invader/Hand-Invader/Y-I_mp4-48_jpg.rf.8a8f67f98b27b4543c35b43668d4532a.jpg'
     image = Image.open(image_path)
 
-    boxes, score, label = inference(image, hand_detection_model, 'cuda')
+    # Convert the PIL image to Torch tensor 
+    img_tensor = transform(image) 
+
+    boxes, score, label = inference(img_tensor, hand_detection_model, 'cpu',0)
     
-    plot_image(image,boxes=boxes, scores=score, labels=label, dataset=[x for x in range(21)])
+    plot_image(img_tensor,boxes=boxes, scores=score, labels=label, dataset=[x for x in range(21)])
     

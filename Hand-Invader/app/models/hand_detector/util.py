@@ -52,7 +52,7 @@ def plot_image(img, boxes, scores, labels, dataset, save_path=None):
   # Create figure and axes
   fig, ax = plt.subplots(1, figsize=(16, 8))
   # Display the image
-  ax.imshow(img)
+  ax.imshow(img.T)
   for i, box in enumerate(boxes):
     class_pred = labels[i]
     conf = scores[i]
