@@ -1,15 +1,27 @@
-import app.models
-from app.models.hand_detector import hand_detection_model, transform, images_dataloader
-from app.models.pipeline import train_one_epoch, save_checkpoint
-from app.models.hand_detector.util import inference, plot_image
+import torchvision
+from app.models.hand_detector import hand_detection_model, images_dataloader, get_transform
+from app.models.pipeline import train_one_epoch, save_checkpoint, load_checkpoint
+from app.models.hand_detector.util import inference, plot_image, plot_loss
 
 import torch
 
 from PIL import Image
 
+def train(num_epochs, model, device, optimizer, lr_scheduler):
+    train_losses =[]
+    for epoch in range(num_epochs):
+        # train for one epoch, printing every 10 iterations
+        train_losses.append(train_one_epoch(hand_detection_model, optimizer, images_dataloader, device))
+        # update the learning rate
+        lr_scheduler.step()
+    
+    save_checkpoint(hand_detection_model, optimizer, train_losses,'hand_detection.ckpt')
+    return train_losses
 
 if __name__ == "__main__":
-     # train on the GPU or on the CPU, if a GPU is not available
+
+    # Set up parameter
+    # train on the GPU or on the CPU, if a GPU is not available
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # move model to the right device
@@ -27,29 +39,31 @@ if __name__ == "__main__":
     # and a learning rate scheduler
     lr_scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer,
-        step_size=3,
+        step_size=0.1,
         gamma=0.1
     )
 
     # let's train it just for 2 epochs
-    num_epochs = 2
+    num_epochs = 1
 
-    for epoch in range(num_epochs):
-        # train for one epoch, printing every 10 iterations
-        train_one_epoch(hand_detection_model, optimizer, images_dataloader, device)
-        # update the learning rate
-        lr_scheduler.step()
-    
-    save_checkpoint(hand_detection_model, optimizer, 'hand_detection.ckpt')
+    losses= train(num_epochs, hand_detection_model, device, optimizer, lr_scheduler)
+
+    # load ckpt
+    hand_detection_model, optimizer, losses = load_checkpoint(model=hand_detection_model,optimizer=optimizer,filename='hand_detection.ckpt')
+    print(losses)
 
     # prediction
-    image_path = '/Users/trungpham/Public/Hand-Invader/Hand-Invader/Y-I_mp4-48_jpg.rf.8a8f67f98b27b4543c35b43668d4532a.jpg'
-    image = Image.open(image_path)
+    image_path = 'Y-R_mp4-105_jpg.rf.d873553557a40b78c434cb7685956882.jpg'
+    image = Image.open(image_path).convert('RGB')
 
     # Convert the PIL image to Torch tensor 
+    transform = get_transform()
     img_tensor = transform(image) 
 
+    hand_detection_model.eval()
+    print(hand_detection_model([img_tensor]))
+
     boxes, score, label = inference(img_tensor, hand_detection_model, 'cpu',0)
+    plot_loss(losses[0])
     
     plot_image(img_tensor,boxes=boxes, scores=score, labels=label, dataset=[x for x in range(21)])
-    

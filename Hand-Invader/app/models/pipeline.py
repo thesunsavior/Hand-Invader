@@ -147,7 +147,7 @@ def train_one_epoch(model, optimizer, data_loader, device='cpu'):
 
     loss = sum(loss for loss in losses.values())
     loss_val = loss.item()
-    train_loss_list.append(loss.detach().cpu().numpy())
+    train_loss_list.append(loss_val)
 
     loss.backward()
     optimizer.step()
@@ -156,25 +156,24 @@ def train_one_epoch(model, optimizer, data_loader, device='cpu'):
 
   return train_loss_list
 
-def save_checkpoint(model, optimizer, filename):
+def save_checkpoint(model, optimizer, train_losses, filename):
     checkpoint = {
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
+        'train_loss': train_losses
     }
     torch.save(checkpoint, filename)
 
 def load_checkpoint(model, optimizer, filename):
     # Loads dictionary
     checkpoint = torch.load(filename)
-
-    # checking weight
-    print(checkpoint['model_state_dict'])
     
     # Restore state for model and optimizer
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(
         checkpoint['optimizer_state_dict']
     )
+    train_losses = checkpoint['train_loss']
     model.train() 
 
-    return model, optimizer
+    return model, optimizer, train_losses

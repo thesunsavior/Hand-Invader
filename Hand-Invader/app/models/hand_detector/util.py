@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 import matplotlib.patches as patches
@@ -81,3 +83,19 @@ def plot_image(img, boxes, scores, labels, dataset, save_path=None):
     plt.savefig(save_path)
 
   plt.show()
+
+def plot_loss(train_loss, valid_loss=[]):
+    ROOT_DIR = os.path.dirname(os.path.abspath(__name__)) # This is your Project Root
+    figure_1, train_ax = plt.subplots()
+    figure_2, valid_ax = plt.subplots()
+
+    train_ax.plot(train_loss, color='blue')
+    train_ax.set_xlabel('Iteration')
+    train_ax.set_ylabel('Training Loss')
+
+    valid_ax.plot(valid_loss, color='red')
+    valid_ax.set_xlabel('Iteration')
+    valid_ax.set_ylabel('Validation loss')
+
+    figure_1.savefig(f"{ROOT_DIR}/train_loss.png")
+    figure_2.savefig(f"{ROOT_DIR}/valid_loss.png")
