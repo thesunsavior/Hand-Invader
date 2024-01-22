@@ -11,11 +11,11 @@ def train(num_epochs, model, device, optimizer, lr_scheduler):
     train_losses =[]
     for epoch in range(num_epochs):
         # train for one epoch, printing every 10 iterations
-        train_losses.append(train_one_epoch(hand_detection_model, optimizer, images_dataloader, device))
+        train_losses.append(train_one_epoch(model, optimizer, images_dataloader, device))
         # update the learning rate
         lr_scheduler.step()
     
-    save_checkpoint(hand_detection_model, optimizer, train_losses,'hand_detection.ckpt')
+    save_checkpoint(model, optimizer, train_losses,'hand_detection.ckpt')
     return train_losses
 
 if __name__ == "__main__":
