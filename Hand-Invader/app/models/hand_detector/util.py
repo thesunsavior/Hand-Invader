@@ -70,13 +70,13 @@ def plot_image(img, boxes, scores, labels, dataset, save_path=None):
     )
     # Add the patch to the Axes
     ax.add_patch(rect)
-    plt.text(
-        box[0], box[1],
-        s=class_labels[int(class_pred)] + " " + str(int(100*conf)) + "%",
-        color="white",
-        verticalalignment="top",
-        bbox={"color": colors[int(class_pred)], "pad": 0},
-    )
+    # plt.text(
+    #     box[0], box[1],
+    #     s=class_labels[int(class_pred)] + " " + str(int(100*conf)) + "%",
+    #     color="white",
+    #     verticalalignment="top",
+    #     bbox={"color": colors[int(class_pred)], "pad": 0},
+    # )
 
   # Used to save inference phase results
   if save_path is not None:

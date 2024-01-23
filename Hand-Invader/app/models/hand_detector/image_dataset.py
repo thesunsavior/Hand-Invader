@@ -35,7 +35,7 @@ class ImageDataset(Dataset):
                 bbox_XYXY = [bbox_XYXY[0], bbox_XYXY[1], bbox_XYXY[0]+bbox_XYXY[2], 
                              bbox_XYXY[1]+bbox_XYXY[3]]
                 boxes.append(bbox_XYXY)
-                labels.append(annotated_imaged['category_id'])
+                labels.append(1)
 
         target["boxes"] = tv_tensors.BoundingBoxes(boxes, format="XYXY", canvas_size=F.get_size(image))
         target["labels"] = torch.tensor(labels)
