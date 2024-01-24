@@ -1,4 +1,3 @@
-import torchvision
 from app.models.hand_detector import hand_detection_model, images_dataloader, get_transform
 from app.models.pipeline import train_one_epoch, save_checkpoint, load_checkpoint
 from app.models.hand_detector.util import inference, plot_image, plot_loss
@@ -44,19 +43,19 @@ if __name__ == "__main__":
     )
 
     # let's train it just for 2 epochs
-    num_epochs = 3
+    num_epochs = 5
     
     # Resume training 
-    # hand_detection_model, optimizer, losses = load_checkpoint(model=hand_detection_model,optimizer=optimizer,filename='hand_detection.ckpt')
-
-    losses= train(num_epochs, hand_detection_model, device, optimizer, lr_scheduler)
+    hand_detection_model, optimizer, losses = load_checkpoint(model=hand_detection_model,optimizer=optimizer,filename='hand_detection.ckpt')
+    
+    losses= losses + train(num_epochs, hand_detection_model, device, optimizer, lr_scheduler)
 
     # load ckpt
     hand_detection_model, optimizer, losses = load_checkpoint(model=hand_detection_model,optimizer=optimizer,filename='hand_detection.ckpt')
     print(losses)
 
     # prediction
-    image_path = 'A-D_mp4-1_jpg.rf.c2050f2692c0a255c8da67549e5617d2.jpg'
+    image_path = 'input.png'
     image = Image.open(image_path).convert('RGB')
 
     # Convert the PIL image to Torch tensor 
@@ -67,6 +66,6 @@ if __name__ == "__main__":
     print(hand_detection_model([img_tensor]))
 
     boxes, score, label = inference(img_tensor, hand_detection_model, 'cpu',0.3)
-    plot_loss(losses[0])
+    plot_loss(losses)
     
     plot_image(img_tensor,boxes=boxes, scores=score, labels=label, dataset=[x for x in range(21)])

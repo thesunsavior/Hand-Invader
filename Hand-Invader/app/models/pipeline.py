@@ -1,7 +1,7 @@
 import numpy as np
+import torch
 from tqdm import tqdm
 
-import torch
 
 class Pipeline:
     def __init__(self, model, loss_fn, optimizer):
@@ -154,7 +154,7 @@ def train_one_epoch(model, optimizer, data_loader, device='cpu'):
 
     tqdm_bar.set_description(desc=f"Training Loss: {loss:.3f}")
 
-  return train_loss_list
+  return np.mean(train_loss_list)
 
 def save_checkpoint(model, optimizer, train_losses, filename):
     checkpoint = {
