@@ -26,7 +26,7 @@ def train(num_epochs, model, device, optimizer, lr_scheduler):
         save_checkpoint(model, optimizer, train_losses,'hand_detection.ckpt')
     return train_losses, valid_losses
 
-def train_hand_detection(hand_detection_model, num_epochs,resume= False, ckpt_filename=""):
+def train_hand_detection(hand_detection_model, num_epochs,resume= False, ckpt_filename="hand_detection.ckpt"):
     # Set up parameter
     # train on the GPU or on the CPU, if a GPU is not available
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
