@@ -1,4 +1,4 @@
-import cv2 as cv
+
 import torch
 import numpy as np
 from PIL import Image
@@ -66,11 +66,3 @@ def train_hand_detection(hand_detection_model, num_epochs,resume= False, ckpt_fi
     plot_loss(losses, valid_loss)
 
     return hand_detection_model
-
-def draw_bbox(img, boxes):
-    # box should be a list of form (x,y,w,h)
-    img_temp = img
-    for box in boxes:
-        img_temp= cv.rectangle(img,(box[0],box[1]),(box[0]+box[2], box[1]+box[3]),2);
-
-    return img_temp
