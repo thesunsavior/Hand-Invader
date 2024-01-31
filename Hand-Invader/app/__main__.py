@@ -12,10 +12,12 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 from PIL import Image
+from app.models.hand_detector import get_transform
+import pyautogui
 
-from app.models.hand_detector import hand_detection_model, images_valid_dataloader, get_transform
-from app.util.train_util import inference, draw_bbox
-from app.util.eval_util import evaluate, plot_loss, plot_image
+# from app.models.hand_detector import hand_detection_model, images_valid_dataloader, get_transform
+# from app.util.train_util import inference, draw_bbox
+# from app.util.eval_util import evaluate, plot_loss, plot_image
 
 
 if __name__ == "__main__":
@@ -54,11 +56,40 @@ if __name__ == "__main__":
         exit()
 
     # Game loop 
+    
+def shoot_first_gun(shoot):
+    try:
+        if shoot:
+            pyautogui.mouseDown()
+        else:
+            pyautogui.mouseUp()
+    except KeyboardInterrupt:
+        print('\n')    
+
+def shoot_second_gun(shoot):
+    try:
+        if shoot:
+            pyautogui.mouseDown(button="right")
+        else:
+            pyautogui.mouseUp(button="right")
+    except KeyboardInterrupt:
+        print('\n')
+        
+def move_mouse(x_pos, y_pos):
+    try:
+        pyautogui.moveTo(x_pos, y_pos)
+    except KeyboardInterrupt:
+        print('\n')
+        
+shoot = False
+shoot2 = False
 with mp_hand.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands: 
     while True:
+        shoot_first_gun(shoot)
+        shoot_second_gun(shoot2)
         # Capture frame-by-frame
         ret, frame = cap.read()
-        frame = cv.flip(frame, 1)
+        # frame = cv.flip(frame, 1)
         
         # Error tracking for camera 
         if not ret:
@@ -66,6 +97,10 @@ with mp_hand.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as
             break
 
         x , y, c = frame.shape
+        # print(x, y, c)
+        size = pyautogui.size()
+        # print(size)
+        ratio = np.array([size[0]/x, size[1]/y])
         
         # Flip the frame vertically
         frame = cv.flip(frame, 1)
@@ -87,20 +122,36 @@ with mp_hand.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as
 
                     landmarks.append([lmx, lmy])
                     
-            prediction = hand_gesture_model.predict([landmarks])
+            pos = np.array([landmarks[0],landmarks[9]]).mean(axis=0)
+            x_pos, y_pos = pos*ratio
+            print(x_pos, y_pos)
+            move_mouse(x_pos, y_pos)
+            # break
+            prediction = hand_gesture_model.predict([landmarks[:21]])
             classID = np.argmax(prediction)
             className = class_names[classID]
-            cv.putText(frame, className, (10, 50), cv.FONT_HERSHEY_SIMPLEX,1, (0,0,255), 2, cv.LINE_AA)
+            print(className)
+            if className == "stop" or className == "live long" or className == "peace":
+                shoot = True
+                shoot2 = False
+            elif className == "rock":
+                shoot = True
+                shoot2 = True
+            else:
+                shoot = False
+                shoot2 = False
+                
+            # cv.putText(frame, className, (10, 50), cv.FONT_HERSHEY_SIMPLEX,1, (0,0,255), 2, cv.LINE_AA)
 
-            palm = results.multi_hand_landmarks[0]
-            palm_x = palm.landmark[0].x
-            palm_y = palm.landmark[0].y
+            # palm = results.multi_hand_landmarks[0]
+            # palm_x = palm.landmark[0].x
+            # palm_y = palm.landmark[0].y
             
-            shape = frame.shape 
-            relative_x = int(palm_x * shape[1])
-            relative_y = int(palm_y * shape[0])
+            # shape = frame.shape 
+            # relative_x = int(palm_x * shape[1])
+            # relative_y = int(palm_y * shape[0])
 
-            image = cv.circle(frame, (relative_x, relative_y), radius=20, color=(225, 0, 100), thickness=1)    
+            # image = cv.circle(frame, (relative_x, relative_y), radius=20, color=(225, 0, 100), thickness=1)    
             
         cv.imshow('frame', frame)
         if cv.waitKey(1) == ord('q'):
