@@ -9,7 +9,6 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 def evaluate(model, data_loader_test, device):
-    model.eval()
     val_loss_list = []
 
     tqdm_bar = tqdm(data_loader_test, total=len(data_loader_test))
@@ -21,7 +20,7 @@ def evaluate(model, data_loader_test, device):
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
         with torch.no_grad():
-            losses = model(images, targets)
+            losses = model(images, targets) 
 
         loss = sum(loss for loss in losses.values())
         loss_val = loss.item()
