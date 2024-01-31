@@ -10,6 +10,7 @@ class Pipeline:
     
 
 def train_one_epoch(model, optimizer, data_loader, device='cpu'):
+  model.train()
   train_loss_list = []
 
   tqdm_bar = tqdm(data_loader, total=len(data_loader))
