@@ -1,35 +1,17 @@
-import os
 import cv2 as cv
 
-import torch
 import numpy as np
-from tensorflow import keras
-from keras.layers import Dense
-from keras.models import Sequential, load_model
+from keras.models import load_model
 
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-from PIL import Image
+import pyautogui
 
-from app.models.hand_detector import hand_detection_model, images_valid_dataloader, get_transform
-from app.util.train_util import inference, draw_bbox
-from app.util.eval_util import evaluate, plot_loss, plot_image
-
+from app.models.auto_agent.agent import Agent
 
 if __name__ == "__main__":
-    # if need for training 
-    # model = train_hand_detection(hand_detection_model)
-    
-    # load hand detection model
-    # checkpoint = torch.load('hand_detection.ckpt')
-    # hand_detection_model.load_state_dict(checkpoint['model_state_dict'])
-
-    # val_loss =evaluate(hand_detection_model, images_valid_dataloader,'cpu')
-    # plot_loss(valid_loss=val_loss)
-
-
     # load hand gesture classification model
     base_options = python.BaseOptions(model_asset_path='gesture_recognizer.task')
     options = vision.GestureRecognizerOptions(base_options=base_options)
@@ -42,23 +24,19 @@ if __name__ == "__main__":
 
     class_names =['okay', 'peace', 'thumbs up', 'thumbs down', 'call me', 'stop', 'rock', 'live long', 'fist', 'smile']
 
-    # preprocessing
-    transform = get_transform()
-
     # initiate camera
     cap = cv.VideoCapture(0)
-    # cap.set(cv.CAP_PROP_FRAME_WIDTH, 300)
-    # cap.set(cv.CAP_PROP_FRAME_HEIGHT, 300)
+    agent = Agent()
+    
     if not cap.isOpened():
         print("Cannot open camera")
         exit()
 
     # Game loop 
-with mp_hand.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands: 
+with mp_hand.Hands(max_num_hands=1, min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands: 
     while True:
         # Capture frame-by-frame
         ret, frame = cap.read()
-        frame = cv.flip(frame, 1)
         
         # Error tracking for camera 
         if not ret:
@@ -66,6 +44,8 @@ with mp_hand.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as
             break
 
         x , y, c = frame.shape
+
+        screen_x, screen_y =pyautogui.size()
         
         # Flip the frame vertically
         frame = cv.flip(frame, 1)
@@ -100,7 +80,20 @@ with mp_hand.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as
             relative_x = int(palm_x * shape[1])
             relative_y = int(palm_y * shape[0])
 
-            image = cv.circle(frame, (relative_x, relative_y), radius=20, color=(225, 0, 100), thickness=1)    
+            # movement control
+            if className == "stop" or className == "live long" or className == "peace":
+                shoot = True
+                shoot2 = False
+            elif className == "rock":
+                shoot = False
+                shoot2 = True
+            else:
+                shoot = False
+                shoot2 = False
+
+            agent.shoot_first_gun(shoot)
+            agent.shoot_second_gun(shoot2)
+            agent.move_mouse (int(palm_x*screen_x), int(palm_y*screen_y))
             
         cv.imshow('frame', frame)
         if cv.waitKey(1) == ord('q'):
