@@ -1,3 +1,6 @@
+import threading
+import queue
+
 import cv2 as cv
 
 import numpy as np
@@ -10,6 +13,33 @@ from mediapipe.tasks.python import vision
 import pyautogui
 
 from app.models.auto_agent.agent import Agent
+
+# share variable
+className="rock"
+palm_x = 1
+palm_y = 1
+exit_signal = False
+
+def agent_actions_thread(agent, queue):
+    while True:
+        # Perform agent actions        
+        if className == "stop" or className == "live long" or className == "peace":
+            shoot = True
+            shoot2 = False
+        elif className == "rock":
+            shoot = False
+            shoot2 = True
+        else:
+            shoot = False
+            shoot2 = False
+
+        agent.shoot_first_gun(shoot)
+        agent.shoot_second_gun(shoot2)
+        agent.move_mouse (int(palm_x*screen_x), int(palm_y*screen_y))
+
+        if exit_signal:
+            break
+
 
 if __name__ == "__main__":
     # load hand gesture classification model
@@ -27,79 +57,68 @@ if __name__ == "__main__":
     # initiate camera
     cap = cv.VideoCapture(0)
     agent = Agent()
+
+    queue = queue.Queue()  # For inter-thread communication
+    agent_thread = threading.Thread(target=agent_actions_thread, args=(agent, queue))
     
+
     if not cap.isOpened():
         print("Cannot open camera")
         exit()
 
+    agent_thread.start()
+
     # Game loop 
-with mp_hand.Hands(max_num_hands=1, min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands: 
-    while True:
-        # Capture frame-by-frame
-        ret, frame = cap.read()
-        
-        # Error tracking for camera 
-        if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
-            break
-
-        x , y, c = frame.shape
-
-        screen_x, screen_y =pyautogui.size()
-        
-        # Flip the frame vertically
-        frame = cv.flip(frame, 1)
-        framergb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-        
-        # Detections
-        results = hands.process(framergb)
-
-        class_name = ''
-        
-        # get hand position
-        if results.multi_hand_landmarks:
-            landmarks = []
-            for handslms in results.multi_hand_landmarks:
-                for lm in handslms.landmark:
-                    # print(id, lm)
-                    lmx = int(lm.x * x)
-                    lmy = int(lm.y * y)
-
-                    landmarks.append([lmx, lmy])
-                    
-            prediction = hand_gesture_model.predict([landmarks])
-            classID = np.argmax(prediction)
-            className = class_names[classID]
-            cv.putText(frame, className, (10, 50), cv.FONT_HERSHEY_SIMPLEX,1, (0,0,255), 2, cv.LINE_AA)
-
-            palm = results.multi_hand_landmarks[0]
-            palm_x = palm.landmark[0].x
-            palm_y = palm.landmark[0].y
+    with mp_hand.Hands(max_num_hands=1, min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands: 
+        while True:
+            # Capture frame-by-frame
+            ret, frame = cap.read()
             
-            shape = frame.shape 
-            relative_x = int(palm_x * shape[1])
-            relative_y = int(palm_y * shape[0])
+            # Error tracking for camera 
+            if not ret:
+                print("Can't receive frame (stream end?). Exiting ...")
+                break
 
-            # movement control
-            if className == "stop" or className == "live long" or className == "peace":
-                shoot = True
-                shoot2 = False
-            elif className == "rock":
-                shoot = False
-                shoot2 = True
-            else:
-                shoot = False
-                shoot2 = False
+            x , y, c = frame.shape
 
-            agent.shoot_first_gun(shoot)
-            agent.shoot_second_gun(shoot2)
-            agent.move_mouse (int(palm_x*screen_x), int(palm_y*screen_y))
+            screen_x, screen_y =pyautogui.size()
             
-        cv.imshow('frame', frame)
-        if cv.waitKey(1) == ord('q'):
-            break
+            # Flip the frame vertically
+            frame = cv.flip(frame, 1)
+            framergb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+            
+            # Detections
+            results = hands.process(framergb)
 
-    # When everything done, release the capture
-    cap.release()
-    cv.destroyAllWindows()
+            class_name = ''
+            
+            # get hand position
+            if results.multi_hand_landmarks:
+                landmarks = []
+                for handslms in results.multi_hand_landmarks:
+                    for lm in handslms.landmark:
+                        # print(id, lm)
+                        lmx = int(lm.x * x)
+                        lmy = int(lm.y * y)
 
+                        landmarks.append([lmx, lmy])
+                        
+                prediction = hand_gesture_model.predict([landmarks])
+                classID = np.argmax(prediction)
+                className = class_names[classID]
+                cv.putText(frame, className, (10, 50), cv.FONT_HERSHEY_SIMPLEX,1, (0,0,255), 2, cv.LINE_AA)
+
+                palm = results.multi_hand_landmarks[0]
+                palm_x = palm.landmark[0].x
+                palm_y = palm.landmark[0].y
+                
+                queue.put((className, palm_x, palm_y))
+            cv.imshow('frame', frame)
+            if cv.waitKey(1) == ord('q'):
+                exit_signal = True
+                break
+        
+        agent_thread.join()
+        # When everything done, release the capture
+        cap.release()
+        cv.destroyAllWindows()
