@@ -14,6 +14,8 @@ import pyautogui
 
 from app.models.auto_agent.agent import Agent
 
+pyautogui.FAILSAFE = False
+
 # share variable
 className="rock"
 palm_x = 20
