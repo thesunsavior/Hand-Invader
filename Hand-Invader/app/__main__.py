@@ -16,8 +16,8 @@ from app.models.auto_agent.agent import Agent
 
 # share variable
 className="rock"
-palm_x = 1
-palm_y = 1
+palm_x = 20
+palm_y = 20
 exit_signal = False
 
 def agent_actions_thread(agent, queue):
