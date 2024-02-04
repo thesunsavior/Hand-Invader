@@ -18,7 +18,7 @@ def collate_fn(batch):
   return tuple(zip(*batch))
 
 def get_transform(train=False):
-    transformss = [transforms.Resize(300), transforms.ToTensor()]
+    transformss = [transforms.ToTensor(), transforms.Resize(320)]
     if train:
         transformss.append(T.RandomHorizontalFlip(0.5))
     transformss.append(T.ToDtype(torch.float, scale=True))
@@ -27,23 +27,7 @@ def get_transform(train=False):
 
 def create_model(num_classes=2, size=256):
     # model pipeline 
-    model = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=num_classes, weights_backbone='DEFAULT', trainable_backbone_layers=0)
-
-
-    # for param in model.parameters():
-    #     param.requires_grad = False
-
-    # # Retrieve the list of input channels. 
-    # in_channels = _utils.retrieve_out_channels(model.backbone, (size, size))
-
-    # # List containing number of anchors based on aspect ratios.
-    # num_anchors = model.anchor_generator.num_anchors_per_location()
-    # # The classification head.
-    # model.head.classification_head = SSDClassificationHead(
-    #     in_channels=in_channels,
-    #     num_anchors=num_anchors,
-    #     num_classes=num_classes,
-    # )
+    model = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=num_classes, weights_backbone='DEFAULT')
 
     return model
 

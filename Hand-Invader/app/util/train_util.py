@@ -1,7 +1,6 @@
 
 import torch
 import numpy as np
-from PIL import Image
 
 from app.models.pipeline import train_one_epoch, save_checkpoint, load_checkpoint
 from app.models.hand_detector import images_dataloader, images_valid_dataloader, get_transform

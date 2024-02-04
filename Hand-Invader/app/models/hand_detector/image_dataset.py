@@ -1,8 +1,8 @@
+import cv2 as cv
+
 import torch
 from torchvision import tv_tensors
-from torchvision.transforms.v2 import functional as F
 
-from PIL import Image
 from torch.utils.data import Dataset
 
 class ImageDataset(Dataset):
@@ -23,8 +23,9 @@ class ImageDataset(Dataset):
         image_path = self.image_paths[idx]
 
         # Read image and label
-        image = Image.open(image_path).convert('RGB')
-        
+        image = cv.imread(image_path)
+        image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+
         target = {}
         boxes =[]
         labels=[]
@@ -37,7 +38,7 @@ class ImageDataset(Dataset):
                 boxes.append(bbox_XYXY)
                 labels.append(1)
 
-        target["boxes"] = tv_tensors.BoundingBoxes(boxes, format="XYXY", canvas_size=F.get_size(image))
+        target["boxes"] = tv_tensors.BoundingBoxes(boxes, format="XYXY", canvas_size=320)
         target["labels"] = torch.tensor(labels)
 
         # Apply transformations (if any)
