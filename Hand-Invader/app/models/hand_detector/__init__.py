@@ -27,7 +27,7 @@ def get_transform(train=False):
 
 def create_model(num_classes=2, size=256):
     # model pipeline 
-    model = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=num_classes, weights_backbone='DEFAULT')
+    model = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=num_classes, weights_backbone='DEFAULT', trainable_backbone_layers=1)
 
     return model
 
