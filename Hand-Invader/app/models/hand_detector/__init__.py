@@ -7,11 +7,7 @@ from torch.utils.data import DataLoader
 import torchvision
 from torchvision import transforms
 from torchvision.transforms import v2 as T
-from torchvision.models.detection.ssd import SSDClassificationHead
-from torchvision.models.detection import _utils
-from torchvision.models.detection import SSDLite320_MobileNet_V3_Large_Weights
 
-from app.models.pipeline import Pipeline
 from app.models.hand_detector.image_dataset import ImageDataset
 
 def collate_fn(batch):
@@ -27,7 +23,7 @@ def get_transform(train=False):
 
 def create_model(num_classes=2, size=256):
     # model pipeline 
-    model = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=num_classes, weights_backbone='DEFAULT', trainable_backbone_layers=1)
+    model = torchvision.models.detection.ssd300_vgg16(num_classes=num_classes, weights_backbone='DEFAULT', trainable_backbone_layers=1)
 
     return model
 
