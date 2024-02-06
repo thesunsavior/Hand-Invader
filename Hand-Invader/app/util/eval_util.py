@@ -1,6 +1,10 @@
 import os
+from pprint import pprint
 
 import torch
+import torchvision.ops.boxes as box_ops
+from torchmetrics.detection import MeanAveragePrecision
+
 import numpy as np
 
 import matplotlib.patches as patches
@@ -120,3 +124,11 @@ def plot_loss(train_loss=[], valid_loss=[]):
 
     if len (valid_loss) >0:
         figure_2.savefig(f"{ROOT_DIR}/valid_loss.png")
+
+
+def Mean_Average_Precision(prediction, target):
+  metric = MeanAveragePrecision(iou_type="bbox")
+  metric.update(prediction, target)
+
+  pprint(metric.compute())
+  return metric.compute()
