@@ -126,9 +126,23 @@ def plot_loss(train_loss=[], valid_loss=[]):
         figure_2.savefig(f"{ROOT_DIR}/valid_loss.png")
 
 
-def Mean_Average_Precision(prediction, target):
-  metric = MeanAveragePrecision(iou_type="bbox")
-  metric.update(prediction, target)
+def Mean_Average_Precision(model, dataloader, detection_threshold):
+  metric = MeanAveragePrecision(box_format='xyxy',iou_type="bbox")
+  model.eval()
+  count = 0
+  for images, targets in dataloader:
+    outputs = model(images)    
+    target = [
+        dict(
+          boxes=targets['boxes'].squeeze(1),
+          labels=targets['labels'].squeeze(1),
+        )
+      ]
+    
+    metric.update([outputs[0]], target)
+    count= count+ 1
 
-  pprint(metric.compute())
+    pprint(metric.compute())
+    print(f"Processed {count}/{len(dataloader)}")
+    
   return metric.compute()

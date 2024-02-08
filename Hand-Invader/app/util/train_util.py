@@ -37,7 +37,7 @@ def train_hand_detection(hand_detection_model, num_epochs,resume= False, ckpt_fi
     params = [p for p in hand_detection_model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(
         params,
-        lr=0.001,
+        lr=0.005,
         momentum=0.9,
         weight_decay=0.0005
     )
