@@ -1,6 +1,10 @@
 import os
+from pprint import pprint
 
 import torch
+import torchvision.ops.boxes as box_ops
+from torchmetrics.detection import MeanAveragePrecision
+
 import numpy as np
 
 import matplotlib.patches as patches
@@ -20,7 +24,7 @@ def evaluate(model, data_loader_test, device):
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
         with torch.no_grad():
-            losses = model(images, targets)
+            losses = model(images, targets) 
 
         loss = sum(loss for loss in losses.values())
         loss_val = loss.item()
@@ -95,13 +99,6 @@ def plot_image(img, boxes, scores, labels, dataset, save_path=None):
     )
     # Add the patch to the Axes
     ax.add_patch(rect)
-    # plt.text(
-    #     box[0], box[1],
-    #     s=class_labels[int(class_pred)] + " " + str(int(100*conf)) + "%",
-    #     color="white",
-    #     verticalalignment="top",
-    #     bbox={"color": colors[int(class_pred)], "pad": 0},
-    # )
 
   # Used to save inference phase results
   if save_path is not None:
@@ -127,3 +124,25 @@ def plot_loss(train_loss=[], valid_loss=[]):
 
     if len (valid_loss) >0:
         figure_2.savefig(f"{ROOT_DIR}/valid_loss.png")
+
+
+def Mean_Average_Precision(model, dataloader, detection_threshold):
+  metric = MeanAveragePrecision(box_format='xyxy',iou_type="bbox")
+  model.eval()
+  count = 0
+  for images, targets in dataloader:
+    outputs = model(images)    
+    target = [
+        dict(
+          boxes=targets['boxes'].squeeze(1),
+          labels=targets['labels'].squeeze(1),
+        )
+      ]
+    
+    metric.update([outputs[0]], target)
+    count= count+ 1
+
+    pprint(metric.compute())
+    print(f"Processed {count}/{len(dataloader)}")
+    
+  return metric.compute()

@@ -7,18 +7,14 @@ from torch.utils.data import DataLoader
 import torchvision
 from torchvision import transforms
 from torchvision.transforms import v2 as T
-from torchvision.models.detection.ssd import SSDClassificationHead
-from torchvision.models.detection import _utils
-from torchvision.models.detection import SSDLite320_MobileNet_V3_Large_Weights
 
-from app.models.pipeline import Pipeline
 from app.models.hand_detector.image_dataset import ImageDataset
 
 def collate_fn(batch):
   return tuple(zip(*batch))
 
 def get_transform(train=False):
-    transformss = [transforms.Resize(300), transforms.ToTensor()]
+    transformss = [transforms.ToTensor(), transforms.Resize(320)]
     if train:
         transformss.append(T.RandomHorizontalFlip(0.5))
     transformss.append(T.ToDtype(torch.float, scale=True))
@@ -27,23 +23,7 @@ def get_transform(train=False):
 
 def create_model(num_classes=2, size=256):
     # model pipeline 
-    model = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=num_classes, weights_backbone='DEFAULT', trainable_backbone_layers=0)
-
-
-    # for param in model.parameters():
-    #     param.requires_grad = False
-
-    # # Retrieve the list of input channels. 
-    # in_channels = _utils.retrieve_out_channels(model.backbone, (size, size))
-
-    # # List containing number of anchors based on aspect ratios.
-    # num_anchors = model.anchor_generator.num_anchors_per_location()
-    # # The classification head.
-    # model.head.classification_head = SSDClassificationHead(
-    #     in_channels=in_channels,
-    #     num_anchors=num_anchors,
-    #     num_classes=num_classes,
-    # )
+    model = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=num_classes, weights_backbone='DEFAULT', trainable_backbone_layers=1)
 
     return model
 
